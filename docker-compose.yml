@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: weatherflow_postgres
+    environment:
+      POSTGRES_USER: etl_user
+      POSTGRES_PASSWORD: etl_pass
+      POSTGRES_DB: weatherflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U etl_user -d weatherflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ingestion:
+    build: ./ingestion
+    container_name: weatherflow_ingestion
+    env_file: .env
+    volumes:
+      - raw_data:/app/raw_data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+  spark:
+    build: ./spark
+    container_name: weatherflow_spark
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: etl_user
+      POSTGRES_PASSWORD: etl_pass
+      POSTGRES_DB: weatherflow
+    volumes:
+      - raw_data:/app/raw_data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+volumes:
+  pg_data:
+  raw_data:
