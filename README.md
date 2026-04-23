@@ -65,14 +65,14 @@ Setup & Execution
 
 Directory Structure
 
-  /ingestion/
+  - /ingestion/
     Python service responsible for fetching raw API data.
 
-  /spark/
+  - /spark/
     PySpark application handling data validation, quarantine logic, and transformations.
 
-  /sql/
+  - /sql/
     Initialization scripts defining the database schema, constraints, and views.
 
-  docker-compose.yml
+  - docker-compose.yml
     Container orchestration.
